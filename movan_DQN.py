@@ -7,17 +7,19 @@ import tensorflow.compat.v1 as tf
 EPS_END = 0.001
 EPS_DECAY = 0.9999
 
-## 原始連續變數
-# ONE_HOT_ENCODING = False
-# DISCRETE = False
-
-## 離散化
+"""state 狀態"""
+# 1. 原始連續變數 ex: [24555689]
 ONE_HOT_ENCODING = False
-DISCRETE = True
+DISCRETE = False
 
-## 離散化並one hot encoding
+# 2. 離散化 ex: [2]
+# ONE_HOT_ENCODING = False
+# DISCRETE = True
+
+# 3. 離散化並one hot encoding ex: [0 1 0 0 0 0 0 0 0 0 0 0 0 ]
 # ONE_HOT_ENCODING = True
 # DISCRETE = True
+
 
 # Deep Q Network off-policy
 class DeepQNetwork:
@@ -32,12 +34,12 @@ class DeepQNetwork:
             batch_size=32,
             # e_greedy_increment=None,
             output_graph=True,
-    ):  
-        self.discrete_state = [0,10000000, 13000000, 15000000, 17846836.5, 18775829, 19000000, 20000000, 23000000, 25000000, 26312565.85,
-        28000000, 29000000, 30000000, 32951914.5, 35000000, 38000000, 40000000, 42000000, 50000000, 10000000000] if DISCRETE == True else []
+    ):
+        self.discrete_state = [0, 10000000, 13000000, 15000000, 17846836.5, 18775829, 19000000, 20000000, 23000000, 25000000, 26312565.85,
+                               28000000, 29000000, 30000000, 32951914.5, 35000000, 38000000, 40000000, 42000000, 50000000, 10000000000] if DISCRETE == True else []
         self.n_actions = n_actions
-        # self.n_features = len(self.discrete_state)-1
-        self.n_features = 1 if ONE_HOT_ENCODING == False else len(self.discrete_state)-1
+        self.n_features = 1 if ONE_HOT_ENCODING == False else len(
+            self.discrete_state)-1
 
         self.eps_start = 1.0
         self.eps_end = EPS_END
@@ -138,9 +140,10 @@ class DeepQNetwork:
 
     def store_transition(self, s, a, r, s_):
         # print('state: ',s, ', action: ', a )
-        s = self.trans_one_hot(s, self.n_features, ONE_HOT_ENCODING, DISCRETE) # 轉成one-hot型式
-        s_ = self.trans_one_hot(s_, self.n_features, ONE_HOT_ENCODING, DISCRETE) # 轉成one-hot型式
-
+        s = self.trans_one_hot(
+            s, self.n_features, ONE_HOT_ENCODING, DISCRETE)  # 轉成one-hot型式
+        s_ = self.trans_one_hot(s_, self.n_features,
+                                ONE_HOT_ENCODING, DISCRETE)  # 轉成one-hot型式
 
         if not hasattr(self, 'memory_counter'):
             self.memory_counter = 0  # dataframe 第0行
@@ -156,10 +159,10 @@ class DeepQNetwork:
 
     def choose_action(self, observation):
 
-        observation = self.trans_one_hot(observation, self.n_features, ONE_HOT_ENCODING, DISCRETE)
+        observation = self.trans_one_hot(
+            observation, self.n_features, ONE_HOT_ENCODING, DISCRETE)
 
         # to have batch dimension when feed into tf placeholder ## 增加矩陣維度
-        # print(observation)
         observation = [observation]
         # observation = observation[np.newaxis, :]
 
@@ -190,13 +193,12 @@ class DeepQNetwork:
 
             sample_index = np.random.choice(
                 self.memory_size, size=self.batch_size)
-       
+
         else:
             sample_index = np.random.choice(
                 self.memory_counter, size=self.batch_size)
 
         batch_memory = self.memory[sample_index, :]
-        # print("batch_memory: ", batch_memory)
 
         q_next, q_eval = self.sess.run(
             [self.q_next, self.q_eval],
@@ -206,7 +208,6 @@ class DeepQNetwork:
                 # newest params #錢面幾個 : s_
                 self.s: batch_memory[:, :self.n_features],
             })
-        # print("q_next: ", q_next)
         # change q_target w.r.t q_eval's action
         q_target = q_eval.copy()
 
@@ -262,14 +263,12 @@ class DeepQNetwork:
         # op_labels = ['0', '1', '2', '3', '4', '5']
         # category = [0, 17846836.5, 18775829, 26312565.85,
         #             30000000, 32951914.5, 10000000000]
-
         op_labels = np.arange(0, len(self.discrete_state)-1)
-
-
-        discreted_state = pd.cut(todayCash,labels=op_labels, bins=self.discrete_state)[0]
+        discreted_state = pd.cut(
+            todayCash, labels=op_labels, bins=self.discrete_state)[0]
         return [discreted_state]
 
-    def trans_one_hot(self,observation, n_dim, one_hot_encoding = True, discrete = True):
+    def trans_one_hot(self, observation, n_dim, one_hot_encoding=True, discrete=True):
         if discrete == True:
             state = self.trans_discrete_state(observation)
             if one_hot_encoding == True:

@@ -4,15 +4,9 @@ from movan_DQN import DeepQNetwork
 from env import SinoEnv
 import tensorflow.compat.v1 as tf
 
-# GAMMA = 0.85
-# EPS_END = 0.001
-# EPS_DECAY = 0.999
-# LEARNING_RATE = 0.1
 EPISODE = 5000
-
 banknum = 39
 cashLimit = 30
-
 train_ratio = 0.9
 
 # actionMoney = [0, 10000000, -10000000] ##  for 有 3 個action時  [不動作, 提取10000000, 解繳10000000 ]
@@ -20,9 +14,9 @@ train_ratio = 0.9
 # actionMoney = [0, 10000000, 11000000, 12000000, 13000000, -10000000, -11000000, -12000000, -13000000]
 # actionMoney = [0, 6000000, 8000000, 10000000, 12000000, -6000000, -8000000, -10000000, -12000000]
 # actionMoney = [0, 5000000, 6000000, 7000000, 8000000,-5000000, -6000000, -7000000, -8000000,]
-actionMoney = [0, 5000000, 6000000, 7000000, 8000000, 9000000, 10000000, -5000000, -6000000, -7000000, -8000000, -9000000, -10000000]
+actionMoney = [0, 5000000, 6000000, 7000000, 8000000, 9000000,
+               10000000, -5000000, -6000000, -7000000, -8000000, -9000000, -10000000]
 # actionMoney = [0, 6000000, 7000000, 8000000, 9000000, 10000000, 11000000, 12000000, -6000000, -7000000, -8000000, -9000000, -10000000, -11000000, -12000000,]
-
 
 
 def data_preprocessing(banknum, cashLimit):
@@ -81,6 +75,7 @@ def data_preprocessing(banknum, cashLimit):
 #     print('game over')
 #     env.destroy()
 
+
 def run():
     step = 0
     for episode in range(EPISODE):
@@ -90,13 +85,13 @@ def run():
         print("epsilon: ", rl.epsilon)
 
         # while True:
-        # for i in range(len(env.train_data)-2):
-        while True:
+        for i in range(len(env.train_data)-2):
+        # while True:
             # 選擇動作
             a = rl.choose_action(s)
             # take action and get nextstate and reward
-            s_, r, a, done = env.step(s, a) #有s是為了計算下一個state
-            
+            s_, r, a, done = env.step(s, a)  # 有s是為了計算下一個state
+
             rl.store_transition(s, a, r, s_)
 
             if (step > 200) and (step % 5 == 0):
@@ -111,7 +106,7 @@ def run():
                 print("爆掉了")
                 # print('第', episode+1, '回合訓練損益是:', total_reward, '元')
             # T.append(total_reward)
-            # print(rl.Qlearning_table)               
+            # print(rl.Qlearning_table)
                 break
 
             # 否則轉換 s -> s_
@@ -120,7 +115,6 @@ def run():
             step += 1
 
             total_reward += r
-
 
         if not done:
             print('第', episode+1, '回合訓練損益是:', total_reward, '元')
@@ -152,12 +146,11 @@ def run():
             # 記憶和學習
             # rl.learn(s, a, r, s_ )
             # rl.perceive(s, a, r, s_, done)
-
             rl.store_transition(s, a, r, s_)
 
             if (step > 200) and (step % 5 == 0):
                 rl.learn()
-                
+
             if done:
                 print("爆掉了")
                 break
@@ -170,7 +163,8 @@ def run():
         print('第', episode+1, '回合測試損益是:', total_reward, '元')
         # print(rl.Qlearning_table)
         print("-"*60)
-    
+
+
 if __name__ == "__main__":
     dataset, dataset_variation, dates = data_preprocessing(banknum, cashLimit)
     # 定義env
