@@ -1,6 +1,7 @@
 import os
 import sys
 import pandas as pd
+import random
 
 class SinoEnv(object):
     def __init__(self, actionMoney, dataset, dataset_variation, dates, train_ratio):
@@ -22,13 +23,16 @@ class SinoEnv(object):
 
     def reset(self):
         self.count = 0
-        self.observation_space = [self.train_data[0]]
+        # self.count = random.randint(0,len(self.train_data)-1)
+        # print("self.count: ", self.count)
+        self.observation_space = [self.train_data[self.count]]
+        # print("self.observation_space: " ,self.observation_space)
         self.variation = self.train_variation
         return self.observation_space
         
     def reset_test(self):
         self.count = 0
-        self.observation_space = [self.test_data[0]]
+        self.observation_space = [self.test_data[self.count]]
         self.variation = self.test_variation
         return self.observation_space
 
@@ -36,6 +40,7 @@ class SinoEnv(object):
         state = state[0]
         # print("sss: ", state)
         done = False
+        
         nextstate = state + self.variation[self.count] + self.action_space[action]
         human_reward = -225
         interest = (nextstate - 27000000) * 0.03 * 0.01 * 1/365
@@ -49,23 +54,40 @@ class SinoEnv(object):
 
 
         if nextstate < 0:
+            # print("DDD")
             reward = -10000000000
             nextstate = 1
             # print("OHHHHHHHH!")
             done = True
+        
+        elif nextstate > 60000000 :
+            reward = -10000000000
+            nextstate = 60000000
+            # print("OHHHHHHHH!")
+            done = True
+
+        # else:
+        # if nextstate > 60000000 :
+        #     reward = -10000000000
+        # elif nextstate < 0 :
+        #     reward = -10000000000
         else:
             # reward = car_reward + human_reward * self.trans_discrete_state(nextstate)*0.9 + risk + stock
             reward = car_reward + human_reward * nextstate/10000000 + risk + stock
+            # print("reward: ", reward)
             if(self.TEST):
                 # print("reward: ", reward)
                 if self.action_space[action] > 0:
                     print("第", self.count, "天，提", self.action_space[action], "date: ", self.dates[self.count] , " !")
                 elif self.action_space[action] < 0:       
                     print("第", self.count, "天，解", self.action_space[action], "date: ", self.dates[self.count] , " !")
-
+        # reward += 50000000
         self.count += 1
         nextstate = [nextstate]
         # print("nextstate: ", nextstate)
+
+        # if self.count == len(self.variation):
+        #     done = True
         return nextstate, reward, action, done
 
     # def trans_discrete_state(self, todayCash):
