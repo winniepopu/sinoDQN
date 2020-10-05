@@ -9,21 +9,20 @@ GAMMA = 0.85
 EPS_END = 0.001
 EPS_DECAY = 0.999
 LEARNING_RATE = 0.1
-EPISODE = 100
+EPISODE = 50000
 
 banknum = 39
 cashLimit = 30
 
 train_ratio = 0.9
 
-# actionMoney = [0, 10000000, -10000000] ##  for 有 3 個action時  [不動作, 提取10000000, 解繳10000000 ]
+actionMoney = [0, 10000000, -10000000] ##  for 有 3 個action時  [不動作, 提取10000000, 解繳10000000 ]
 # actionMoney = [0, 10000000, 15000000, -10000000, -15000000]   ## for 有 5 個action時  [不動作, 提取10000000, 提取15000000, 解繳10000000, 解繳15000000 ]
 # actionMoney = [0, 10000000, 11000000, 12000000, 13000000, -10000000, -11000000, -12000000, -13000000]
-# actionMoney = [0, 6000000, 8000000, 10000000,
-#                12000000, -6000000, -8000000, -10000000, -12000000]
+# actionMoney = [0, 6000000, 8000000, 10000000, 12000000, -6000000, -8000000, -10000000, -12000000]
 # actionMoney = [0, 5000000, 6000000, 7000000, 8000000,-5000000, -6000000, -7000000, -8000000,]
 # actionMoney = [0, 5000000, 6000000, 7000000, 8000000, 9000000, 10000000, -5000000, -6000000, -7000000, -8000000, -9000000, -10000000]
-actionMoney = [0, 6000000, 7000000, 8000000, 9000000, 10000000, 11000000, 12000000, -6000000, -7000000, -8000000, -9000000, -10000000, -11000000, -12000000,]
+# actionMoney = [0, 6000000, 7000000, 8000000, 9000000, 10000000, 11000000, 12000000, -6000000, -7000000, -8000000, -9000000, -10000000, -11000000, -12000000,]
 
 
 def data_preprocessing(banknum, cashLimit):
@@ -58,6 +57,7 @@ def main():
     rl = DQN(env, len(actionMoney), GAMMA, EPS_END, EPS_DECAY, LEARNING_RATE)
     # 初始化Tensorflow
     tf.global_variables_initializer()
+    T = []
 
     # Training
     for episode in range(EPISODE):
@@ -69,9 +69,8 @@ def main():
         for i in range(len(env.train_data)-2):
             # 選擇動作
             a = rl.choose_action(s)
-            # print("a: ", a)
             # take action and get nextstate and reward
-            s_, r, a, done = env.step(s, a)
+            s_, r, a, done = env.step(s, a) #有s是為了計算下一個state
             
 
             # 記憶和學習
@@ -80,9 +79,6 @@ def main():
 
             if done:
                 print("爆掉了")
-                # print('第', episode+1 , '回合訓練損益是:', total_reward, '元')
-                # print(rl.Qlearning_table)
-                # print("-"*60)
                 break
 
             # 否則轉換 s -> s_
@@ -91,6 +87,7 @@ def main():
             total_reward += r
         if not done:
             print('第', episode+1, '回合訓練損益是:', total_reward, '元')
+            T.append(total_reward)
             # print(rl.Qlearning_table)
         print("-"*60)
 
@@ -131,13 +128,15 @@ def main():
         print('第', episode+1, '回合測試損益是:', total_reward, '元')
         # print(rl.Qlearning_table)
         print("-"*60)
+    
+    print("訓練T list: ", T)
 
-def weight_variable(shape):
-    initial = tf.random.truncated_normal(shape)#常態分布
-    return tf.Variable(initial)
-def bias_variable(shape):
-    initial = tf.constant(0.01, shape = shape)#常數 起始維0.01
-    return tf.Variable(initial)
+# def weight_variable(shape):
+#     initial = tf.random.truncated_normal(shape)#常態分布
+#     return tf.Variable(initial)
+# def bias_variable(shape):
+#     initial = tf.constant(0.01, shape = shape)#常數 起始維0.01
+#     return tf.Variable(initial)
 
 # def test():
 #     session = tf.InteractiveSession()
